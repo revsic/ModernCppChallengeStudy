@@ -1,4 +1,4 @@
-// #include <gsl/gsl>
+#include <gsl/gsl>
 #include <iostream>
 
 int main(int argc, char* argv[])
@@ -12,14 +12,13 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    while (num1 != num2) {
-        int max = num1 > num2 ? num1 : num2;
-        int min = num1 < num2 ? num1 : num2;
-
-        num1 = max - min;
-        num2 = min;
-    }
+    do {
+        if (num1 > num2) {
+            std::swap(num1, num2);
+        }
+        num2 %= num1;
+    } while (num2 != 0);
+    
     std::cout << num1 << std::endl;
-
     return 0;
 }
