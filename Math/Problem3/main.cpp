@@ -1,7 +1,16 @@
-// #include <gsl/gsl>
+#include <gsl/gsl>
 #include <iostream>
-#include <memory>
-#include <numeric>
+
+int gcd(int a, int b) {
+    do {
+        if (a > b) {
+            std::swap(a, b);
+        }
+        b %= a;
+    } while (b != 0);
+
+    return a;
+}
 
 int main(int argc, char* argv[])
 {
@@ -28,7 +37,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    int lcm = num1 * num2 / std::gcd(num1, num2);
+    int lcm = num1 * num2 / gcd(num1, num2);
     for (int i = 2; i < len; ++i) {
         std::cin >> num1;
         if (num1 <= 0) {
@@ -36,7 +45,7 @@ int main(int argc, char* argv[])
             return 1;
         }
 
-        lcm = lcm * num1 / std::gcd(lcm, num1);
+        lcm = lcm * num1 / gcd(lcm, num1);
     }
     
     std::cout << "lcm: " << lcm << std::endl;
