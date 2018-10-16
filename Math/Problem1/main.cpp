@@ -1,4 +1,4 @@
-// #include <gsl/gsl>
+#include <gsl/gsl>
 #include <iostream>
 
 int main(int argc, char* argv[])
