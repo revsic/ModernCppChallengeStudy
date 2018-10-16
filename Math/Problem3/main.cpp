@@ -19,12 +19,12 @@ int main(int argc, char* argv[])
     std::cout << "nums: ";
     std::cin >> num1 >> num2;
 
-    auto log_positive_exception = [] { 
+    auto log_negative_exception = [] { 
         std::cout << "[*] number should be positive" << std::endl; 
     };
 
     if (num1 <= 0 || num2 <= 0) {
-        log_positive_exception();
+        log_negative_exception();
         return 1;
     }
 
@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
     for (int i = 2; i < len; ++i) {
         std::cin >> num1;
         if (num1 <= 0) {
-            log_positive_exception();
+            log_negative_exception();
             return 1;
         }
 
