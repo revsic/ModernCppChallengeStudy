@@ -7,15 +7,19 @@ struct Roman {
     char chr;
 };
 
-constexpr size_t ROMAN_SYMBOLS = 7;
+constexpr size_t ROMAN_SYMBOLS = 11;
 Roman repr[ROMAN_SYMBOLS] = {
-    { 1000, 'M', },
-    { 500, 'D' },
-    { 100, 'C' },
-    { 50, 'L' },
-    { 10, 'X' },
-    { 5, 'V' },
-    { 1, 'I' },
+    { 1000000, 'M' },
+    { 500000, 'D' },
+    { 100000, 'C' },
+    { 5000, 'V' },
+    { 1000, 'm', },
+    { 500, 'd' },
+    { 100, 'c' },
+    { 50, 'l' },
+    { 10, 'x' },
+    { 5, 'v' },
+    { 1, 'i' },
 };
 
 std::string roman(int number) {
@@ -27,13 +31,17 @@ std::string roman(int number) {
         if (digit != 0) {    
             if (digit == 4) {
                 if (prev == i - 1) {
-                    stream << repr[i].chr << repr[prev - 1].chr;
+                    std::string temporal = stream.str();
+                    temporal.pop_back();
+                    
+                    stream.str(std::string());
+                    stream << temporal << repr[i].chr << repr[i - 2].chr;
                 }
                 else {
-                    stream << repr[i].chr << repr[prev].chr;
+                    stream << repr[i].chr << repr[i - 1].chr;
                 }
             }
-            else {                                                                                                                                                                                                                         (digit == 4) {
+            else {
                 for (int j = 0; j < digit; ++j) {
                     stream << repr[i].chr;
                 } 
