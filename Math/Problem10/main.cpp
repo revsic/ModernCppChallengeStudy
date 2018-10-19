@@ -1,58 +1,57 @@
-#include <gsl/gsl>
+//#include <gsl/gsl>
 #include <iostream>
+#include <memory>
+#include <tuple>
 
-template <size_t size>
-int binary(int num, int* normal) {
-    for (int i = size - 1; i >= 0; --i) {
-        normal[i] = num % 2;
+auto to_binary(int num) {
+    size_t num_digit = 0;
+    for (int digit = 1; digit <= num; digit <<= 1, ++num_digit);
+
+    auto data = std::make_unique<int[]>(num_digit);
+    for (int i = num_digit - 1; i >= 0; --i) {
+        data[i] = num % 2;
         num /= 2;
     }
-    return 0;
+
+    return std::make_tuple(std::move(data), num_digit);
 }
 
-template <size_t size>
-int mirror(int num_digit, int gray_code[size][1 << size]) {
-    int length = 1 << num_digit;
-    for (int i = 0; i < num_digit; ++i) {
-        for (int j = 0; j < length; ++j) {
-            gray_code[i][length + j] = gray_code[i][length - j - 1];
-        }
+auto bin_to_gray(std::unique_ptr<int[]>&& binary, size_t size) {
+    for (int i = 0; i < size - 2; ++i) {
+        binary[i] ^= binary[i + 1];
     }
-
-    for (int i = 0; i < length; ++i) {
-        gray_code[num_digit][i] = 0;
-        gray_code[num_digit][length + i] = 1;
-    }
-
-    return 0;
+    return std::move(binary);
 }
 
-int main(int argc, char* argv[])
-{
+int gray_to_int(std::unique_ptr<int[]>&& gray, size_t size) {
+    for (int i = size - 2; i >= 0; --i) {
+        gray[i] ^= gray[i + 1];
+    }
+
+    int num = 0;
+    for (int i = 0; i < size; ++i) {
+        num += gray[i] * (1 << i);
+    }
+
+    return num;
+}
+
+int main(int argc, char* argv[]) {
     constexpr size_t digit = 5;
-    constexpr size_t length = 1 << digit;
-    
-    int normal[length][digit] = { 0, };
-    for (int i = 0; i < length; ++i) {
-        binary<digit>(i, normal[i]);
-    }
 
-    int gray_code[digit][length] = { 0, 1, };
-    for (int i = 1; i < digit; ++i) {
-        mirror<digit>(i, gray_code);
-    }
-
-    for (int i = 0; i < length; ++i) {
-        for (int j = digit - 1; j >= 0; --j) {
-            std::cout << gray_code[j][i];
+    for (int i = 0; i < digit; ++i) {
+        auto[binary, size] = to_binary(i);
+        for (int j = 0; j < size; ++j) {
+            std::cout << binary[j];
         }
-
         std::cout << ' ';
-        for (int j = 0; j < digit; ++j) {
-            std::cout << normal[i][j];
+        
+        auto gray_code = bin_to_gray(std::move(binary), size);
+        for (int j = 0; j < size; ++j) {
+            std::cout << gray_code[j];
         }
-
-        std::cout << ' ' << i << std::endl;
+        
+        std::cout << ' ' << gray_to_int(std::move(gray_code), size);
     }
 
     return 0;
