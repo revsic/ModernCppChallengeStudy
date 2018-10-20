@@ -29,7 +29,6 @@ int main(int argc, char* argv[])
             max = cache[i];
             number = i;
         }
-        
     }
 
     std::cout << number << ' ' << max << std::endl;
