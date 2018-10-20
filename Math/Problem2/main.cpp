@@ -19,6 +19,7 @@ int main(int argc, char* argv[])
         num2 %= num1;
     } while (num2 != 0);
     
+    // std::gcd(num1, num2)
     std::cout << num1 << std::endl;
     return 0;
 }
