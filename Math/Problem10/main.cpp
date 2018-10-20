@@ -19,9 +19,9 @@ struct Box {
 
 auto binary(int num, int placeholder = -1) {
     size_t size = num > 0 ? std::log2(num) + 1 : 0;
-    
+
     auto bin = std::make_unique<int[]>(size);
-    for (size_t i = size; i > 0; --i) {
+    for (int i = size; i > 0; --i) {
         bin[i - 1] = num % 2;
         num /= 2;
     }
