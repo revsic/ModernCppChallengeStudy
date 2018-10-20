@@ -1,13 +1,10 @@
 #include <gsl/gsl>
-
 #include <cmath>
 #include <iostream>
 
 int narcissistic(int number) {
-    int digit = 0;
-    for (int i = 1; number >= i; i *= 10, ++digit);
-
     int sum = 0;
+    int digit = std::log10(number) + 1;
     while (number) {
         sum += pow(number % 10, digit);
         number /= 10;
