@@ -1,57 +1,81 @@
-//#include <gsl/gsl>
+#include <gsl/gsl>
 #include <iostream>
 #include <memory>
 #include <tuple>
 
-auto to_binary(int num) {
-    size_t num_digit = 0;
-    for (int digit = 1; digit <= num; digit <<= 1, ++num_digit);
+struct Box {
+    Box(size_t size, std::unique_ptr<int[]>&& bin, int placeholder = -1) :
+        size(size), bin(std::move(bin)), placeholder(placeholder)
+    {
+        // Do Nothing
+    }
 
-    auto data = std::make_unique<int[]>(num_digit);
-    for (int i = num_digit - 1; i >= 0; --i) {
-        data[i] = num % 2;
+    size_t size;
+    std::unique_ptr<int[]> bin;
+
+    int placeholder;
+};
+
+auto binary(int num, int placeholder = -1) {
+    size_t size = 0;
+    for (int digit = 1; digit <= num; digit <<= 1, ++size);
+    
+    auto bin = std::make_unique<int[]>(size);
+    for (size_t i = size; i > 0; --i) {
+        bin[i - 1] = num % 2;
         num /= 2;
     }
-
-    return std::make_tuple(std::move(data), num_digit);
+    
+    return Box(size, std::move(bin), placeholder);
 }
 
-auto bin_to_gray(std::unique_ptr<int[]>&& binary, size_t size) {
-    for (int i = 0; i < size - 2; ++i) {
-        binary[i] ^= binary[i + 1];
+auto gray_code(Box&& box) {
+    for (int i = box.size - 1; i > 0; --i) {
+        box.bin[i] ^= box.bin[i - 1];
     }
-    return std::move(binary);
+    return std::move(box);
 }
 
-int gray_to_int(std::unique_ptr<int[]>&& gray, size_t size) {
-    for (int i = size - 2; i >= 0; --i) {
-        gray[i] ^= gray[i + 1];
+auto rollback(Box&& box) {
+    for (int i = 1; i < box.size; ++i) {
+        box.bin[i] ^= box.bin[i - 1];
     }
+    return std::move(box);
+}
 
+int make_num(const Box& box) {
     int num = 0;
-    for (int i = 0; i < size; ++i) {
-        num += gray[i] * (1 << i);
+    for (int i = 1; i <= box.size; ++i) {
+        num += box.bin[i - 1] << (box.size - i);
+    }
+    return num;
+}
+
+std::ostream& operator<<(std::ostream& stream, const Box& box) {
+    for (int i = box.size; i < box.placeholder; ++i) {
+        stream << 0;
     }
 
-    return num;
+    for (int i = 0; i < box.size; ++i) {
+        stream << box.bin[i];
+    }
+    
+    return stream;
 }
 
 int main(int argc, char* argv[]) {
     constexpr size_t digit = 5;
 
-    for (int i = 0; i < digit; ++i) {
-        auto[binary, size] = to_binary(i);
-        for (int j = 0; j < size; ++j) {
-            std::cout << binary[j];
-        }
-        std::cout << ' ';
-        
-        auto gray_code = bin_to_gray(std::move(binary), size);
-        for (int j = 0; j < size; ++j) {
-            std::cout << gray_code[j];
-        }
-        
-        std::cout << ' ' << gray_to_int(std::move(gray_code), size);
+    for (int i = 0; i < (1 << digit); ++i) {
+        auto bin = binary(i, digit);
+        std::cout << bin << ' ';
+
+        auto gray = gray_code(std::move(bin));
+        std::cout << gray << ' ';
+
+        auto converted = rollback(std::move(gray));
+        std::cout << converted << ' '
+                  << make_num(converted) << std::endl;
     }
 
     return 0;
