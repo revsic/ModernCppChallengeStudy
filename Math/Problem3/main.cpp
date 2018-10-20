@@ -1,5 +1,8 @@
 #include <gsl/gsl>
+#include <algorithm>
 #include <iostream>
+#include <memory>
+#include <numeric>
 
 int gcd(int a, int b) {
     do {
@@ -10,6 +13,10 @@ int gcd(int a, int b) {
     } while (b != 0);
 
     return a;
+}
+
+int lcm(int a, int b) {
+    return a * b / gcd(a, b);
 }
 
 int main(int argc, char* argv[])
@@ -23,31 +30,16 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    int num1 = 0;
-    int num2 = 0;
-    std::cout << "nums: ";
-    std::cin >> num1 >> num2;
-
-    auto log_negative_exception = [] { 
-        std::cout << "[*] number should be positive" << std::endl; 
-    };
-
-    if (num1 <= 0 || num2 <= 0) {
-        log_negative_exception();
-        return 1;
-    }
-
-    int lcm = num1 * num2 / gcd(num1, num2);
-    for (int i = 2; i < len; ++i) {
-        std::cin >> num1;
-        if (num1 <= 0) {
-            log_negative_exception();
-            return 1;
+    auto data = std::make_unique<int[]>(len);
+    for (int i = 0; i < len; ++i) {
+        std::cin >> data[i];
+        if (data[i] <= 0) {
+            std::cout << "[*] number sould be positive" << std::endl;
         }
-
-        lcm = lcm * num1 / gcd(lcm, num1);
     }
-    
-    std::cout << "lcm: " << lcm << std::endl;
+
+    int* data_ptr = data.get();
+    std::cout << std::accumulate(data_ptr, data_ptr + len, 1, lcm) << std::endl;
+
     return 0;
 }
