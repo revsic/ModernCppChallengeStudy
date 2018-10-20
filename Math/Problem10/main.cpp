@@ -1,4 +1,5 @@
 #include <gsl/gsl>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <tuple>
@@ -17,8 +18,7 @@ struct Box {
 };
 
 auto binary(int num, int placeholder = -1) {
-    size_t size = 0;
-    for (int digit = 1; digit <= num; digit <<= 1, ++size);
+    size_t size = num > 0 ? std::log2(num) + 1 : 0;
     
     auto bin = std::make_unique<int[]>(size);
     for (size_t i = size; i > 0; --i) {
