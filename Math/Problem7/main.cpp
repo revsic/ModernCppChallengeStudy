@@ -1,5 +1,4 @@
 #include <gsl/gsl>
-
 #include <array>
 #include <cmath>
 #include <iostream>
@@ -48,7 +47,6 @@ int main(int argc, char* argv[])
             if (result) {
                 std::cout << '(' << i << ", " << result << ')' << std::endl;
             }
-
         }
     }
 
