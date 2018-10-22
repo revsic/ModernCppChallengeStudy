@@ -36,11 +36,11 @@ public:
     }
 
 private:
-    static std::regex ip_regex;
+    static const std::regex ip_regex;
     OCTET octets[4]= { 0, };
 };
 
-std::regex IPv4::ip_regex("([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})");
+const std::regex IPv4::ip_regex("([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})");
 
 int main(int argc, char* argv[])
 {
