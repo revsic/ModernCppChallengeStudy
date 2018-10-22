@@ -5,3 +5,5 @@ project(Language LANGUAGES CXX)
 add_subdirectory(./Problem15)
 add_subdirectory(./Problem16)
 add_subdirectory(./Problem17)
+add_subdirectory(./Problem18)
+
