@@ -1,108 +1,104 @@
 #include <gsl/gsl>
 #include <iostream>
+#include <memory>
 
 template <typename T, size_t ROW, size_t COL>
 class Array2D {
 public:
-    Array2D() : m_array(new T*[ROW]), m_storage(new T[ROW * COL]) {
+    Array2D() : m_array(std::make_unique<T*[]>(ROW)), m_storage(std::make_unique<T[]>(ROW * COL)) {
         for (size_t i = 0; i < ROW; ++i) {
             m_array[i] = &m_storage[i * COL];
         }
     }
 
     Array2D(std::initializer_list<T>&& list) : Array2D() {
-        T t;
-        auto begin = list.begin();
-        for (size_t i = 0; i < ROW; ++i) {
-            for (size_t j = 0; j < COL; ++j) {
-                if (begin != list.end()) {
-                    if constexpr (noexcept(t = std::move(std::declval<T>()))) {
-                        m_array[i][j] = std::move(*begin);
-                    }
-                    else {
-                        m_array[i][j] = *begin;
-                    }
-                    ++begin;
-                }
-                else {
-                    m_array[i][j] = T();
-                }
+        T* ptr = m_storage.get();
+        size_t list_size = list.size();
+
+        if (list_size < ROW * COL) {
+            for (size_t i = list_size; i < ROW * COL; ++i) {
+                ptr[i] = T();
+            }
+        }
+        else {
+            list_size = ROW * COL;
+        }
+
+        for (auto iter = list.begin(); list_size; --list_size) {
+            if constexpr (T t; noexcept(t = std::move(std::declval<T>()))) {
+                *ptr++ = std::move(*iter++);
+            }
+            else {
+                *ptr++ = *iter++;
             }
         }
     }
 
     Array2D(std::initializer_list<std::initializer_list<T>>&& list) : Array2D() {
-        T t;
-        auto begin = list.begin();
-        for (size_t i = 0; i < ROW; ++i) {
-            if (begin != list.end()) {
-                auto& iter = *begin;
-                auto col_begin = iter.begin();
-                for (size_t j = 0; j < COL; ++j) {
-                    if (col_begin != iter.end()) {
-                        if constexpr (noexcept(t = std::move(std::declval<T>()))) {
-                            m_array[i][j] = std::move(*col_begin);
-                        }
-                        else {
-                            m_array[i][j] = *col_begin;
-                        }
-                        ++col_begin;
-                    }
-                    else {
-                        m_array[i][j] = T();
-                    }
+        size_t list_size = list.size();
+        if (list_size < ROW) {
+            for (size_t i = list_size * ROW; i < COL * ROW; ++i) {
+                m_storage[i] = T();
+            }
+        }
+        else {
+            list_size = ROW;
+        }
+
+        auto iter = list.begin();
+        for (size_t i = 0; i < list_size; ++i) {
+            auto& row = *iter++;
+            
+            T* ptr = m_array[i];
+            size_t row_size = row.size();
+            if (row_size < COL) {
+                for (size_t j = row_size; j < COL; ++j) {
+                    ptr[j] = T();
                 }
-                ++begin;
             }
             else {
-                for (size_t j = 0; j < COL; ++j) {
-                    m_array[i][j] = T();
+                row_size = COL;
+            }
+
+            for (auto row_iter = row.begin(); row_size; --row_size) {
+                if constexpr (T t; noexcept(t = std::move(std::declval<T>()))) {
+                    *ptr++ = std::move(*row_iter++);
+                }
+                else {
+                    *ptr++ = *row_iter++;
                 }
             }
+
         }
     }
 
-    ~Array2D() {
-        if (m_array != nullptr) {
-            delete[] m_array;
-        }
-        if (m_storage != nullptr) {
-            delete[] m_storage;
-        }
-    }
-
-    Array2D(const Array2D& array) : Array2D() {
-        for (size_t i = 0; i < ROW; ++i) {
-            for (size_t j = 0; j < COL; ++j) {
-                m_array[i][j] = array[i][j];
-            }
+    Array2D(const Array2D& other) : Array2D() {
+        T* ptr = m_storage.get();
+        T* other_storage = other.m_storage.get();
+        for (size_t i = 0; i < ROW * COL; ++i) {
+            *ptr++ = *other_storage++;
         }
     }
 
-    Array2D(Array2D&& array) : m_array(array.m_array), m_storage(array.m_storage) {
-        array.m_array = nullptr;
-        array.m_storage = nullptr;
+    Array2D(Array2D&& other) : 
+        m_array(std::move(other.m_array)), m_storage(std::move(other.m_storage)) 
+    {
+        // Do Nothinig
     }
 
-    Array2D& operator=(const Array2D& array) {
-        for (size_t i = 0; i < ROW; ++i) {
-            for (size_t j = 0; j < COL; ++j) {
-                m_array[i][j] = array[i][j];
-            }
+    Array2D& operator=(const Array2D& other) {
+        T* ptr = m_storage.get();
+        T* other_storage = other.m_storage.get();
+        
+        for (size_t i = 0; i < ROW * COL; ++i) {
+            *ptr++ = *other_storage++;
         }
         return *this;
     }
 
-    Array2D& operator=(Array2D&& array) {
-        delete[] m_array;
-        delete[] m_storage;
-
-        m_array = array.m_array;
-        m_storage = array.m_storage;
-
-        array.m_array = nullptr;
-        array.m_storage = nullptr;
-
+    Array2D& operator=(Array2D&& other) {
+        m_array = std::move(other.m_array);
+        m_storage = std::move(other.m_storage);
         return *this;
     }
 
@@ -115,7 +111,7 @@ public:
     }
 
     int* data() {
-        return m_storage;
+        return m_storage.get();
     }
 
     int capacity() const {
@@ -123,7 +119,7 @@ public:
     }
 
     int* begin() {
-        return m_storage;
+        return m_storage.get();
     }
 
     int* end() {
@@ -137,8 +133,8 @@ public:
     }
 
 private:
-    T** m_array;
-    T* m_storage;
+    std::unique_ptr<T*[]> m_array;
+    std::unique_ptr<T[]> m_storage;
 };
 
 int main() {
@@ -146,10 +142,10 @@ int main() {
     constexpr size_t col = 3;
 
     std::cout << "Array1 : " << std::endl;
-    Array2D<int, row, col> array = { 1, 2, 3, 4, 5, 6 };
+    Array2D<int, row, col> array1 = { 1, 2, 3, 4, 5, 6 };
     for (size_t i = 0; i < row; ++i) {
         for (size_t j = 0; j < col; ++j) {
-            std::cout << array[i][j] << ' ';
+            std::cout << array1[i][j] << ' ';
         }
         std::cout << std::endl;
     }
@@ -163,19 +159,29 @@ int main() {
         std::cout << std::endl;
     }
 
-    std::cout << "\nArray : ";
-    for (auto elem : array) {
+    std::cout << "\nArray1 : ";
+    for (auto elem : array1) {
         std::cout << elem << ' ';
     }
     std::cout << std::endl;
 
     std::cout << "\nSwapped Array1 : " << std::endl;
-    swap(array, array2);
+    swap(array1, array2);
     for (size_t i = 0; i < row; ++i) {
         for (size_t j = 0; j < col; ++j) {
-            std::cout << array.at(i, j) << ' ';
+            std::cout << array1.at(i, j) << ' ';
         }
         std::cout << std::endl;
     }
+
+    std::cout << "\nArray3 : " << std::endl;
+    Array2D<int, 3, 3> array3 = { { 1, 1, 1 }, { 2, 2 } };
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+            std::cout << array3[i][j] << ' ';
+        }
+        std::cout << std::endl;
+    }
+
     return 0;
 }
