@@ -5,7 +5,9 @@
 template <typename T, size_t ROW, size_t COL>
 class Array2D {
 public:
-    Array2D() : m_array(std::make_unique<T*[]>(ROW)), m_storage(std::make_unique<T[]>(ROW * COL)) {
+    Array2D() : 
+        m_array(std::make_unique<T*[]>(ROW)), m_storage(std::make_unique<T[]>(ROW * COL)) 
+    {
         for (size_t i = 0; i < ROW; ++i) {
             m_array[i] = &m_storage[i * COL];
         }
@@ -68,7 +70,6 @@ public:
                     *ptr++ = *row_iter++;
                 }
             }
-
         }
     }
 
