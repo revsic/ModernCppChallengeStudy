@@ -43,7 +43,7 @@ public:
         return *this;
     }
 
-    bool operator<(const IPv4& other) {
+    bool operator<(const IPv4& other) const {
         for (int i = 0; i < 4; ++i) {
             if (m_octets[i] < other.m_octets[i]) {
                 return true;
