@@ -21,7 +21,7 @@ struct Fold {
 
         template <typename Ts, typename W>
         constexpr friend auto operator+(Ts&& value, const Wrapper<W>& wrapper) {
-            return wrapper.oper(value, wrapper.value);
+            return wrapper.oper(std::forward<Ts>(value), wrapper.value);
         }
     };
 
