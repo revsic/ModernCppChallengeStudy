@@ -23,46 +23,59 @@ auto minimum(T&&... args) -> std::common_type_t<T...> {
     return minimum(std::forward<T>(args)...);   
 }
 
-template <typename F, typename T>
-struct Wrapper {
+template <typename F>
+struct Fold {
     F oper;
-    T value;
 
-    constexpr Wrapper(F&& oper, T&& value) : oper(std::forward<F>(oper)), value(std::forward<T>(value)) {
-        // Do nothing
-    }
+    template <typename T>
+    struct Wrapper {
+        F oper;
+        T value;
 
-    template <typename U>
-    constexpr auto operator+(const Wrapper<F, U>& other) {
-        return oper(value, other.value);
-    }
-};
+        template <typename Fs, typename Ts>
+        constexpr Wrapper(Fs&& oper, Ts&& value) : 
+            oper(std::forward<Fs>(oper)), value(std::forward<Ts>(value)) 
+        {
+            // Do nothing
+        }
 
-template <typename F, typename... T>
-struct Folder {
-    F oper;
-    std::tuple<Wrapper<F, T>...> values;
+        template <typename Ts>
+        constexpr auto operator+(Ts&& other) const {
+            return oper(value, other);
+        }
+    };
 
-    constexpr Folder(F&& oper, T&&... values) : 
-        oper(std::forward<F>(oper)), values(Wrapper<F, T>(oper, std::forward<T>(values))...)
-    {
+    template <typename Fs>
+    constexpr Fold(Fs&& oper) : oper(std::forward<Fs>(oper)) {
         // DO Nothing
     }
 
-    template <typename U>
-    constexpr auto run(U&& initial) {
-        return impl(std::forward<U>(initial), std::make_index_sequence<sizeof...(T)>{});
+    template <typename T, typename... Ts>
+    constexpr auto operator()(T&& initial, Ts&&... values) const {
+        return impl(
+            std::forward<T>(initial), 
+            std::make_tuple(Wrapper<Ts>(oper, std::forward<Ts>(values))...),
+            std::make_index_sequence<sizeof...(Ts)>{});
     }
 
-    template <typename U, size_t... Idx>
-    constexpr auto impl(U&& initial, std::index_sequence<Idx...>) {
-        return (Wrapper<F, U>(std::move(oper), std::forward<U>(initial)) + ... + std::get<Idx>(values));
+    template <typename T, typename Ts, size_t... Idx>
+    constexpr auto impl(
+        T&& initial, 
+        Ts&& tuple,
+        std::index_sequence<Idx...>) const 
+    {
+        constexpr size_t max = sizeof...(Idx) - 1;
+        return (std::get<max - Idx>(tuple) + ... + std::forward<T>(initial));
     }
 };
 
-template <typename F, typename T, typename... U>
-auto fold(F&& binary, T&& initial, U&&... args) {
-    return Folder<F, U...>(std::forward<F>(binary), std::forward<U>(args)...).run(std::forward<T>(initial));
+template <typename F>
+constexpr auto fold(F&& binary) {
+    return Fold<F>(std::forward<F>(binary));
+}
+
+constexpr int add(int a, int b) {
+    return a + b;
 }
 
 int main() {
@@ -73,7 +86,8 @@ int main() {
                     std::string("zef")) 
               << std::endl;
     
-    std::cout << fold([](int a, int b) { return a + b; }, 1, 2, 3) << std::endl;
+    constexpr int result = fold(add)(1, 2, 3, 4, 5);
+    std::cout << result << std::endl;
 
     return 0;
 }
