@@ -6,4 +6,5 @@ add_subdirectory(./Problem15)
 add_subdirectory(./Problem16)
 add_subdirectory(./Problem17)
 add_subdirectory(./Problem18)
-
+add_subdirectory(./Problem19)
+add_subdirectory(./Problem20)
