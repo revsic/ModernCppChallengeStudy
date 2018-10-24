@@ -65,13 +65,13 @@ public:
         return *this;
     }
 
-    optional<T> release() {
+    optional<T>&& release() {
         optional<T> value;
         if (m_handler) {
             value = std::move(m_handler);
             m_handler = nullopt;
         }
-        return value;
+        return std::move(value);
     }
 
     void reset() {
@@ -135,9 +135,14 @@ private:
 
 
 template <typename T, typename R = default_releaser<T>>
+unique_handler<T, R> make_handler(const T& handler, R&& releaser = default_releaser<T>{}) {
+    return unique_handler<T, R>(handler, std::forward<R>(releaser));
+}
+template <typename T, typename R = default_releaser<T>>
 unique_handler<T, R> make_handler(T&& handler, R&& releaser = default_releaser<T>{}) {
     return unique_handler<T, R>(std::forward<T>(handler), std::forward<R>(releaser));
 }
+
 
 int main() {
     auto handler = make_handler<std::FILE*>(std::fopen("./test.txt", "w"), std::fclose);
@@ -146,6 +151,9 @@ int main() {
 
     handler = make_handler<std::FILE*>(std::fopen("./test.txt", "r"), std::fclose);
     std::fread(buffer, 1, sizeof(buffer), handler.get().value());
+
+    auto raw_opt = handler.release();
+    handler = make_handler<std::FILE*>(raw_opt.value(), std::fclose);
 
     std::cout << buffer << std::endl;
     return 0;
