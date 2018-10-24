@@ -23,53 +23,52 @@ struct default_releaser {
     void operator()(T& handle) noexcept { }
 };
 
-template <typename T, typename Deleter = default_releaser<T>>
+template <typename T, typename Releaser = default_releaser<T>>
 class unique_handler {
 public:
     unique_handler() : m_handler(nullopt) {
         // Do Nothing
     }
 
-    template <typename Ts>
-    unique_handler(Ts&& handler) : m_handler(std::forward<Ts>(handler)) {
+    unique_handler(const T& handler) : m_handler(handler) {
         // Do Nothing
     }
 
-    template <typename Ts, typename Ds>
-    unique_handler(Ts&& handler, Ds&& deleter) : 
-        m_handler(std::forward<Ts>(handler)), m_deleter(std::forward<Ds>(deleter)) 
+    unique_handler(T&& handler) : m_handler(std::move(handler)) {
+        // Do Nothing
+    }
+
+    template <typename Ts, typename Rs>
+    unique_handler(Ts&& handler, Rs&& releaser) : 
+        m_handler(std::forward<Ts>(handler)), m_releaser(std::forward<Rs>(releaser)) 
     {
         // Do Nothing
     }
 
     unique_handler(const unique_handler&) = delete;
     unique_handler(unique_handler&& handler) noexcept : 
-        m_handler(std::move(handler.m_handler)), m_deleter(std::move(handler.m_deleter))
+        m_handler(std::move(handler.m_handler)), m_releaser(std::move(handler.m_releaser))
     {
         handler.m_handler = nullopt;
     }
 
     ~unique_handler() {
-        if (m_handler) {
-            m_deleter(m_handler.value());
-        }
+        reset();
     }
 
     unique_handler& operator=(const unique_handler&) = delete;
-    unique_handler& operator=(unique_handler&& handler) noexcept(noexcept(std::declval<Deleter>()(std::declval<T>())))
+    unique_handler& operator=(unique_handler&& handler) noexcept(
+        noexcept(std::declval<Releaser>()(std::declval<T>())))
     {
-        if (m_handler) {
-            m_deleter(m_handler.value());
-        }
-        m_handler = std::move(handler.m_handler);
-        handler.m_handler = nullopt;
+        reset();
+        m_handler = std::move(handler.release());
         return *this;
     }
 
     optional<T> release() {
         optional<T> value;
         if (m_handler) {
-            value = m_handler;
+            value = std::move(m_handler);
             m_handler = nullopt;
         }
         return value;
@@ -77,29 +76,28 @@ public:
 
     void reset() {
         if (m_handler) {
-            m_deleter(m_handler.value());
+            m_releaser(m_handler.value());
             m_handler = nullopt;
         }
     }
 
     void reset(const T& handler) {
         if (m_handler) {
-            m_deleter(m_handler.value());
+            m_releaser(m_handler.value());
         }
         m_handler = handler;
     }
 
     void reset(T&& handler) {
         if (m_handler) {
-            m_deleter(m_handler.value());
+            m_releaser(m_handler.value());
         }
         m_handler = std::move(handler);
     }
 
     void swap(unique_handler& other) {
-        optional<T> handle = std::move(other.m_handler);
-        other.m_handler = std::move(m_handler);
-        m_handler = std::move(handle);
+        std::swap(m_handler, other.m_handler);
+        std::swap(m_releaser, other.m_releaser);
     }
 
     optional<T>& get() & {
@@ -114,12 +112,16 @@ public:
         return std::move(m_handler);
     }
 
-    Deleter& get_deleter() {
-        return m_deleter;
+    Releaser& get_releaser() & {
+        return m_releaser;
     }
 
-    const Deleter& get_deleter() const {
-        return m_deleter;;
+    const Releaser& get_releaser() const& {
+        return m_releaser;
+    }
+
+    Releaser&& get_releaser() && {
+        return std::move(m_releaser);
     }
 
     operator bool() {
@@ -128,17 +130,13 @@ public:
 
 private:
     optional<T> m_handler;
-    Deleter m_deleter;
+    Releaser m_releaser;
 };
 
-template <typename T>
-unique_handler<T> make_handler(T&& handler) {
-    return unique_handler<T>(std::forward<T>(handler));
-}
 
-template <typename T, typename D>
-unique_handler<T, D> make_handler(T&& handler, D&& deleter) {
-    return unique_handler<T, D>(std::forward<T>(handler), std::forward<D>(deleter));
+template <typename T, typename R = default_releaser<T>>
+unique_handler<T, R> make_handler(T&& handler, R&& releaser = default_releaser<T>{}) {
+    return unique_handler<T, R>(std::forward<T>(handler), std::forward<R>(releaser));
 }
 
 int main() {
@@ -146,13 +144,8 @@ int main() {
     char buffer[] = "Hello World !";
     std::fwrite(buffer, 1, sizeof(buffer), handler.get().value());
 
-    assert(bool(handler));
-    handler.reset();
-    assert(!bool(handler));
-    
     handler = make_handler<std::FILE*>(std::fopen("./test.txt", "r"), std::fclose);
-    std::FILE* raw_handler = handler.release().value();
-    std::fread(buffer, 1, sizeof(buffer), raw_handler);
+    std::fread(buffer, 1, sizeof(buffer), handler.get().value());
 
     std::cout << buffer << std::endl;
     return 0;
