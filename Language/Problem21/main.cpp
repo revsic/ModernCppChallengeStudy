@@ -44,57 +44,74 @@ public:
 
     unique_handler(const unique_handler&) = delete;
     unique_handler(unique_handler&& handler) noexcept : 
-        m_handler(std::move(handler.m_handler)) 
+        m_handler(std::move(handler.m_handler)), m_deleter(std::move(handler.m_deleter))
     {
         handler.m_handler = nullopt;
     }
 
     ~unique_handler() {
-        if (m_handler != nullopt) {
+        if (m_handler) {
             m_deleter(m_handler.value());
         }
     }
 
     unique_handler& operator=(const unique_handler&) = delete;
-    unique_handler& operator=(unique_handler&& handler) noexcept(std::declval<Deleter>()(std::declval<T>())) 
+    unique_handler& operator=(unique_handler&& handler) noexcept(noexcept(std::declval<Deleter>()(std::declval<T>())))
     {
-        m_deleter(m_handler.value());
+        if (m_handler) {
+            m_deleter(m_handler.value());
+        }
         m_handler = std::move(handler.m_handler);
         handler.m_handler = nullopt;
+        return *this;
     }
 
-    T&& release() {
-        T value = std::move(m_handler.value());
-        m_handler = nullopt;
-        return std::move(value);
+    optional<T> release() {
+        optional<T> value;
+        if (m_handler) {
+            value = m_handler;
+            m_handler = nullopt;
+        }
+        return value;
     }
 
-    void reset(const T& handler = nullopt) {
-        m_deleter(m_handler.value());
+    void reset() {
+        if (m_handler) {
+            m_deleter(m_handler.value());
+            m_handler = nullopt;
+        }
+    }
+
+    void reset(const T& handler) {
+        if (m_handler) {
+            m_deleter(m_handler.value());
+        }
         m_handler = handler;
     }
 
     void reset(T&& handler) {
-        m_deleter(m_handler.value());
+        if (m_handler) {
+            m_deleter(m_handler.value());
+        }
         m_handler = std::move(handler);
     }
 
     void swap(unique_handler& other) {
-        T handle = std::move(other.m_handler.value());
+        optional<T> handle = std::move(other.m_handler);
         other.m_handler = std::move(m_handler);
         m_handler = std::move(handle);
     }
 
-    T& get() & {
-        return m_handler.value();
+    optional<T>& get() & {
+        return m_handler;
     }
 
-    const T& get() const& {
-        return m_handler.value();
+    const optional<T>& get() const& {
+        return m_handler;
     }
 
-    T&& get() && {
-        return std::move(m_handler.value());
+    optional<T>&& get() && {
+        return std::move(m_handler);
     }
 
     Deleter& get_deleter() {
@@ -125,8 +142,18 @@ unique_handler<T, D> make_handler(T&& handler, D&& deleter) {
 }
 
 int main() {
-    auto handler = make_handler<std::FILE*, int(*)(std::FILE*)>(std::fopen("./test.txt", "w"), std::fclose);
-
+    auto handler = make_handler<std::FILE*>(std::fopen("./test.txt", "w"), std::fclose);
     char buffer[] = "Hello World !";
-    std::fwrite(buffer, sizeof(char), sizeof(buffer), handler.get());
+    std::fwrite(buffer, 1, sizeof(buffer), handler.get().value());
+
+    assert(bool(handler));
+    handler.reset();
+    assert(!bool(handler));
+    
+    handler = make_handler<std::FILE*>(std::fopen("./test.txt", "r"), std::fclose);
+    std::FILE* raw_handler = handler.release().value();
+    std::fread(buffer, 1, sizeof(buffer), raw_handler);
+
+    std::cout << buffer << std::endl;
+    return 0;
 }
