@@ -6,27 +6,13 @@ project(ModernCppChallenge LANGUAGES CXX)
 set(CMAKE_MODULE_PATH       ${CMAKE_SOURCE_DIR}/Scripts)
 set(ROOT_DIR                ${CMAKE_SOURCE_DIR})
 set(CMAKE_INSTALL_PREFIX    ${CMAKE_SOURCE_DIR}/Solved)
+set(CMAKE_CXX_STANDARD      17)
 
 include(GetModules)
 
-# Ch.1 
-add_subdirectory(Math/Problem1)
-add_subdirectory(Math/Problem2)
-add_subdirectory(Math/Problem3)
-add_subdirectory(Math/Problem4)
-add_subdirectory(Math/Problem5)
-add_subdirectory(Math/Problem6)
-add_subdirectory(Math/Problem7)
-add_subdirectory(Math/Problem8)
-add_subdirectory(Math/Problem9)
-add_subdirectory(Math/Problem10)
-add_subdirectory(Math/Problem11)
-add_subdirectory(Math/Problem12)
-add_subdirectory(Math/Problem13)
-add_subdirectory(Math/Problem14)
-
+add_subdirectory(Math)          # Ch.1
 add_subdirectory(Language)      # Ch.2
-# add_subdirectory(Regex)         # Ch.3
+add_subdirectory(Regex)         # Ch.3
 # add_subdirectory(Filesystem)    # Ch.4
 # add_subdirectory(DateTime)      # Ch.5
 # add_subdirectory(Algorithm)     # Ch.6
