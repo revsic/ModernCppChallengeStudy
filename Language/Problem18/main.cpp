@@ -1,74 +1,47 @@
 #include <gsl/gsl>
 #include <iostream>
-#include <tuple>
-#include <utility>
 
 template <typename F>
-struct Fold {
-    F oper;
-
-    template <typename T>
-    struct Wrapper {
-        F oper;
-        T value;
-
-        template <typename Fs, typename Ts>
-        constexpr Wrapper(Fs&& oper, Ts&& value) : 
-            oper(std::forward<Fs>(oper)), value(std::forward<Ts>(value)) 
-        {
-            // Do nothing
-        }
-
-        template <typename Ts, typename W>
-        constexpr friend auto operator+(Ts&& value, const Wrapper<W>& wrapper) {
-            return wrapper.oper(std::forward<Ts>(value), wrapper.value);
-        }
-    };
+struct Foldr {
+    F func;
 
     template <typename Fs>
-    constexpr Fold(Fs&& oper) : oper(std::forward<Fs>(oper)) {
-        // DO Nothing
+    constexpr Foldr(Fs&& func) : func(std::forward<Fs>(func)) {
+        // Do Nothing
+    }
+
+    template <typename T, typename U>
+    constexpr auto impl(T&& arg1, U&& arg2) {
+        return func(std::forward<T>(arg1), std::forward<U>(arg2));
     }
 
     template <typename T, typename... Ts>
-    constexpr auto operator()(T&& initial, Ts&&... values) const {
-        return impl(
-            std::forward<T>(initial),
-            std::make_tuple(Wrapper<Ts>(oper, std::forward<Ts>(values))...),
-            std::make_index_sequence<sizeof...(Ts)>{});
+    constexpr auto impl(T&& init, Ts&&... rest) {
+        return func(std::forward<T>(init), impl(std::forward<Ts>(rest)...));
     }
 
-    template <typename T, typename TupleT, size_t... Idx>
-    constexpr auto impl(
-        T&& initial, 
-        TupleT&& tuple,
-        std::index_sequence<Idx...>) const 
-    {
-        return (std::forward<T>(initial) + ... + std::get<Idx>(tuple));
+    template <typename... Ts>
+    constexpr auto operator()(Ts&&... args) {
+        return impl(std::forward<Ts>(args)...);
     }
 };
 
 template <typename F>
-constexpr auto fold(F&& binary) {
-    return Fold<F>(std::forward<F>(binary));
+constexpr auto foldr(F&& func) {
+    return Foldr<F>(std::forward<F>(func));
 }
 
-template <typename T, typename U>
-constexpr auto min(const T& a, const U& b) -> std::common_type_t<T, U> {
+template <typename T>
+constexpr T min(T a, T b) {
     return a < b ? a : b;
 }
 
-constexpr int add(int a, int b) {
-    return a + b;
-}
-
 int main() {
-    std::cout << fold(min<int, int>)(1, 3, 2, 5, 4) << std::endl;
-    std::cout << fold(min<std::string, std::string>)("abc", "zef", "qwe")
-              << std::endl;
+    std::cout << foldr(min<int>)(3, 1, 5, 2, 4) << std::endl;
+    std::cout << foldr(min<std::string_view>)("abc", "zef", "qwe") << std::endl;
 
-    constexpr int result = fold(add)(1, 2, 3, 4, 5);
-    std::cout << result << std::endl;
+    auto add = [](int a, int b) constexpr { return a + b; };
+    static_assert(foldr(add)(1, 2, 3, 4, 5) == 15);
 
     return 0;
 }
