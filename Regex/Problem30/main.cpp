@@ -38,6 +38,11 @@ private:
 
     static const std::regex format;
 };
+// 1. protocol ([^:]+):// 
+// 2. domain [^:/]+
+// 3. port :([0-9]+)
+// 4. query \\?([^\\?#]+)
+// 5. fragment #(.+)
 const std::regex URL::format("(([^:]+)://)?([^:/]+)(:([0-9]+))?(/([^\\?#]+))?(\\?([^#]+))?(#(.+))?");
 
 int main() {
