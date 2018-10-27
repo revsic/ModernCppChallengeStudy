@@ -53,7 +53,7 @@ auto enumerate(T&& given) {
 }
 
 std::vector<std::string> split(const std::string& given, 
-                                 const std::string& delim) 
+                               const std::string& delim) 
 {
     size_t start = 0;
     std::vector<std::string> splitted;
@@ -62,7 +62,7 @@ std::vector<std::string> split(const std::string& given,
         if (auto iter = std::find(delim.begin(), delim.end(), chr);
             iter != delim.end()) 
         {
-            if (idx > start) {
+            if (start < idx) {
                 splitted.emplace_back(given.substr(start, idx - start));
             }
             start = idx + 1;
