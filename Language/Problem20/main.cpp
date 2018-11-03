@@ -9,26 +9,19 @@ bool contains(C&& cont, T&& item) {
     return std::find(cont.begin(), cont.end(), item) != cont.end();
 }
 
+template <typename C, typename... T>
+bool contains_any(C&& cont, T&&... items) {
+    return (... || contains(cont, std::forward<T>(items)));
+}
+
+template <typename C, typename... T>
+bool contains_all(C&& cont, T&&... items) {
+    return (... && contains(cont, std::forward<T>(items)));
+}
+
 template <typename C, typename T>
 bool contains_any(C&& cont, T&& item) {
     return contains(std::forward<C>(cont), std::forward<T>(item));
-}
-
-template <typename C, typename T, typename... Ts>
-bool contains_any(C&& cont, T&& item, Ts&&... items) {
-    return contains(cont, std::forward<T>(item)) 
-        || contains_any(std::forward<C>(cont), std::forward<Ts>(items)...);
-}
-
-template <typename C, typename T>
-bool contains_all(C&& cont, T&& item) {
-    return contains(std::forward<C>(cont), std::forward<T>(item));
-}
-
-template <typename C, typename T, typename... Ts>
-bool contains_all(C&& cont, T&& item, Ts&&... items) {
-    return contains(cont, std::forward<T>(item))
-        && contains_all(std::forward<C>(cont), std::forward<Ts>(items)...);
 }
 
 template <typename C, typename... T>
