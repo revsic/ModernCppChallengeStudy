@@ -30,6 +30,7 @@ PRIVATE
 target_link_libraries(${PROJECT_NAME}
 PRIVATE
     GSL
+    stdc++fs
 )
 
 install(TARGETS ${PROJECT_NAME}

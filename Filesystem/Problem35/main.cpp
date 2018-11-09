@@ -13,7 +13,7 @@ ull sizeof_dir(const fs::path& path) {
 
     ull size = 0;
     if (fs::is_directory(path)) {
-        for (auto const& dir : fs::directory_iterator(path)) {
+        for (auto& dir : fs::directory_iterator(path)) {
             if (dir.is_regular_file()) {
                 size += dir.file_size();
             }
