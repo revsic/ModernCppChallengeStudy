@@ -76,7 +76,7 @@ public:
 
     void reset() {
         if (m_handler) {
-            m_releaser(m_handler.value());
+            m_releaser(*m_handler);
             m_handler = nullopt;
         }
     }
@@ -147,13 +147,13 @@ unique_handler<T, R> make_handler(T&& handler, R&& releaser = default_releaser<T
 int main() {
     auto handler = make_handler<std::FILE*>(std::fopen("./test.txt", "w"), std::fclose);
     char buffer[] = "Hello World !";
-    std::fwrite(buffer, 1, sizeof(buffer), handler.get().value());
+    std::fwrite(buffer, 1, sizeof(buffer), *handler.get());
 
     handler = make_handler<std::FILE*>(std::fopen("./test.txt", "r"), std::fclose);
-    std::fread(buffer, 1, sizeof(buffer), handler.get().value());
+    std::fread(buffer, 1, sizeof(buffer), *handler.get());
 
     auto raw_opt = handler.release();
-    handler = make_handler<std::FILE*>(raw_opt.value(), std::fclose);
+    handler = make_handler<std::FILE*>(*raw_opt, std::fclose);
 
     std::cout << buffer << std::endl;
     return 0;
