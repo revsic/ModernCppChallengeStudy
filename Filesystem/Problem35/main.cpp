@@ -1,5 +1,7 @@
 #include <gsl/gsl>
 #include <iostream>
+
+#ifdef ENABLE_FS
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -43,3 +45,11 @@ int main(int argc, char* argv[])
     return 0;
 }
     
+#else
+
+int main() {
+    std::cout << "set EnableFS in cmake" << std::endl;
+    return 0;
+}
+
+#endif
