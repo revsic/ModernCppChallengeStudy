@@ -1,8 +1,6 @@
 #include <gsl/gsl>
-#include <iostream>
-
-#ifdef ENABLE_FS
 #include <filesystem>
+#include <iostream>
 #include <limits>
 #include <regex>
 #include <vector>
@@ -47,7 +45,6 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-
     std::string s_regex;
     std::cin >> s_regex;
     
@@ -61,12 +58,3 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-    
-#else
-
-int main() {
-    std::cout << "set EnableFS in cmake" << std::endl;
-    return 0;
-}
-
-#endif
