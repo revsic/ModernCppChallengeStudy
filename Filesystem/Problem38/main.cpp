@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <functional>
 #include <fstream>
+#include <iterator>
 #include <iostream>
 
 namespace fs = std::filesystem;
@@ -35,11 +36,19 @@ public:
 
     bool Move(const std::string& filepath) {
         m_ofs.close();
-        bool res = fs::copy_file(m_filename, filepath, 
-                                 fs::copy_options::overwrite_existing);
+        // bool res = fs::copy_file(m_filename, filepath, 
+        //                          fs::copy_options::overwrite_existing);
         
         m_ofs.open(filepath);
-        if (res && m_ofs.is_open()) {
+
+        std::ifstream ifs(m_filename);
+        std::copy(std::istreambuf_iterator<char>(ifs),
+                  std::istreambuf_iterator<char>(),
+                  std::ostreambuf_iterator<char>(m_ofs));
+        ifs.close();
+
+        // if (res && m_ofs.is_open()) {
+        if (m_ofs.is_open()) {
             fs::remove(m_filename);
 
             m_moved = true;
@@ -110,12 +119,6 @@ int main() {
 
         if (log2.Move(move_filename)) {
             std::cout << "successfully moved" << std::endl;
-
-            std::string res;
-            std::ifstream ifs(move_filename);
-
-            std::getline(ifs, res);
-            std::cout << "Moved msg: " << res << std::endl;
         }
     }
 
