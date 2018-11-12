@@ -1,8 +1,6 @@
 
 cmake_minimum_required(VERSION 3.1)
 
-set(EnableFS TRUE)
-
 # Use directory name for this project's name. 
 string(REGEX MATCH Problem.+ # Format: Project + Number
        ProjectName ${CMAKE_CURRENT_SOURCE_DIR})
@@ -32,15 +30,8 @@ PRIVATE
 target_link_libraries(${PROJECT_NAME}
 PRIVATE
     GSL
+    stdc++fs
 )
-
-if(EnableFS)
-    add_compile_definitions(ENABLE_FS)
-    target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-        stdc++fs
-    )
-endif()
 
 install(TARGETS ${PROJECT_NAME}
     DESTINATION ${CMAKE_INSTALL_PREFIX}
