@@ -2,7 +2,7 @@
 #include "PriorityQueue.hpp"
 #include "catch2/catch.hpp"
 
-TEST_CASE("Constructor", "[Initialize]") {
+TEST_CASE("Constructor", "[Constructor]") {
     PriorityQueue<int> queue;
     REQUIRE(queue.empty());
 
@@ -22,7 +22,7 @@ TEST_CASE("Constructor", "[Initialize]") {
     }
 }
 
-TEST_CASE("Assignment", "[Initialize]") {
+TEST_CASE("Assignment", "[Assignment]") {
     PriorityQueue<int> q1;
     PriorityQueue<int> q2 = { 0, 3, 2, 5, 4, 1 };
     
@@ -37,7 +37,7 @@ TEST_CASE("Assignment", "[Initialize]") {
     }
 }
 
-TEST_CASE("Emplace", "[Modification]") {
+TEST_CASE("PriorityQueue::emplace", "[Modifier]") {
     char const* arr[] = { "0", "1", "2", "3" };
     
     PriorityQueue<std::string> que;
@@ -50,7 +50,7 @@ TEST_CASE("Emplace", "[Modification]") {
     }
 }
 
-TEST_CASE("Push", "[Modification]") {
+TEST_CASE("PriorityQueue::push", "[Modifier]") {
     std::string arr[10];
     for (size_t i = 0; i < 10; ++i) {
         arr[i] = std::to_string(i);
@@ -75,7 +75,7 @@ TEST_CASE("Push", "[Modification]") {
     }
 }
 
-TEST_CASE("Pop", "[Modification]") {
+TEST_CASE("PriorityQueue::pop", "[Modifier]") {
     PriorityQueue<int> que = { 0, 3, 2, 1, 5, 4 };
     
     for (size_t i = 0; i < 3; ++i) {
@@ -87,7 +87,7 @@ TEST_CASE("Pop", "[Modification]") {
     }
 }
 
-TEST_CASE("Iterating", "[Iterator]") {
+TEST_CASE("PriorityQueue::{begin, end}", "[Iterator]") {
     PriorityQueue<int> que = { 0, 3, 1, 2, 5, 4 };
     
     static_assert(!std::is_const_v<
@@ -108,12 +108,12 @@ TEST_CASE("Iterating", "[Iterator]") {
     }
 }
 
-TEST_CASE("Size", "[Get Value]") {
+TEST_CASE("PriorityQueue::size", "[Capacity]") {
     PriorityQueue<int> que = { 0, 3, 1, 2, 5, 4 };
     REQUIRE(que.size() == 6);
 }
 
-TEST_CASE("Top", "[Get Value]") {
+TEST_CASE("PriorityQueue::top", "[Element Access]") {
     PriorityQueue<int> que = { 0, 3, 1, 2, 5, 4 };
 
     for (int i = 5; i >= 0; --i) {
@@ -122,7 +122,7 @@ TEST_CASE("Top", "[Get Value]") {
     }
 
 }
-TEST_CASE("oper[]", "[Get Value]") {
+TEST_CASE("PriorityQueue::operator[]", "[Element Access]") {
     PriorityQueue<int> que = { 0, 3, 1, 2, 5, 4 };
     for (size_t i = 0; i < 6; ++i) {
         REQUIRE(que[i] == 5 - i);
