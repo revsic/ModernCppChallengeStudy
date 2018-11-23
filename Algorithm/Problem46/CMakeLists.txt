@@ -25,6 +25,7 @@ endif()
 target_include_directories(${PROJECT_NAME}
 PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${ROOT_DIR}/External/Catch2/single_include
 )
 
 target_link_libraries(${PROJECT_NAME}

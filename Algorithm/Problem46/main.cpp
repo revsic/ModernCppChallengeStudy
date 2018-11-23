@@ -1,262 +1,162 @@
-// #include <memory>
-// #include <stdexcept>
-// #include <type_traits>
+#define CATCH_CONFIG_MAIN
+#include "CircularBuffer.hpp"
+#include "catch2/catch.hpp"
 
-// template <typename T,
-//           typename = std::enable_if_t<std::is_default_constructible_v<T>>>
-// class CircularBuffer {
-// public:
-//     template <typename U>
-//     class Iterator {
-//     public:
-//         Iterator(U* ptr, size_t pos, size_t capacity, bool begin) :
-//             ptr(ptr), pos(pos), capacity(capacity)
-//         {
-//             // Do Nothing
-//         }
+TEST_CASE("Constructor", "[Constructor]") {
+    CircularBuffer<int> default_ctor;
+    REQUIRE(default_ctor.capacity() == 0);
 
-//         Iterator& operator++() {
-//             pos = (pos + 1) % capacity;
-//             return *this;
-//         }
+    CircularBuffer<int> cap_ctor(10);
+    REQUIRE(cap_ctor.capacity() == 10);
+}
 
-//         bool operator!=(Iterator const& iter) const {
-//             return pos != iter.pos;
-//         }
+TEST_CASE("CopyConstructor", "[Constructor]") {
 
-//         U& operator*() const {
-//             return ptr[pos];
-//         }
+}
 
-//     private:
-//         U* ptr;
-//         size_t pos;
-//         size_t capacity;
-//     };
+TEST_CASE("Assignment", "[Assignment]") {
 
-//     using value_type = T;
+}
 
-//     using reference = value_type&;
-//     using const_reference = value_type const&;
+TEST_CASE("CircularBuffer::assign", "[Assignment]") {
 
-//     using iterator = Iterator<value_type>;
-//     using const_iterator = Iterator<value_type const>;
+}
 
-//     CircularBuffer() : 
-//         capacity(0), 
-//         size_buffer(0), 
-//         buffer(nullptr) 
-//     {
-//         // Do Nothing
-//     }
+TEST_CASE("CircularBuffer::at", "[Element Access]") {
 
-//     CircularBuffer(size_t capacity) :
-//         capacity(capacity), 
-//         size_buffer(capacity + 1), 
-//         buffer(std::make_unique<value_type[]>(size_buffer))
-//     {
-//         // Do Nothing
-//     }
+}
 
-//     CircularBuffer(CircularBuffer const& cbuffer) : 
-//         capacity(cbuffer.capacity),
-//         size_buffer(cbuffer.size_buffer),
-//         buffer(std::make_unique<T[]>(size_buffer)),
-//         num_data(cbuffer.num_data),
-//         ptr_head(0),
-//         ptr_tail(num_data)
-//     {
-//         for (size_t i = 0; i < num_data; ++i) {
-//             buffer[i] = cbuffer[i];
-//         }
-//     }
+TEST_CASE("CircularBuffer::operator[]", "[Element Access]") {
+    CircularBuffer<int> buffer(10);
+    for (int i = 0; i < 10; ++i) {
+        buffer.emplace_back(i);
+        REQUIRE(buffer[i] == i);
+    }
+}
 
-//     CircularBuffer(CircularBuffer&& cbuffer) : 
-//         capacity(capacity), 
-//         size_buffer(cbuffer.size_buffer), 
-//         buffer(std::move(cbuffer.buffer)),
-//         num_data(cbuffer.num_data),
-//         ptr_head(cbuffer.ptr_head),
-//         ptr_tail(cbuffer.ptr_tail)
-//     {
-//         // Do Nothing
-//     }
+TEST_CASE("CircularBuffer::front", "[Element Access]") {
+    CircularBuffer<int> buffer(10);
+    for (int i = 0; i < 10; ++i) {
+        buffer.emplace_back(i);
+        REQUIRE(buffer.front() == i);
+        buffer.pop_front();
+    }
+}
 
-//     CircularBuffer& operator=(CircularBuffer const& cbuffer) {
-//         capacity = cbuffer.capacity;
-//         size_buffer = cbuffer.size_buffer;
-//         buffer = std::make_unique<T[]>(size_buffer);
+TEST_CASE("CircularBuffer::back", "[Element Access]") {
+    CircularBuffer<int> buffer(10);
+    for (int i = 0; i < 10; ++i) {
+        buffer.emplace_back(i);
+        REQUIRE(buffer.back() == i);
+        buffer.pop_back();
+    }
+}
 
-//         ptr_head = 0;
-//         ptr_tail = 0;
-//         num_data = cbuffer.num_data;
-//         for (size_t i = 0; i < num_data; ++i) {
-//             buffer[i] = cbuffer[i];
-//         }
-//     }
+TEST_CASE("CircularBuffer::{begin, end}", "[Iterator]") {
+    CircularBuffer<int> buffer(10);
+    for (int i = 0; i < 10; ++i) {
+        buffer.emplace_back(i);
+    }
+}
 
-//     CircularBuffer& operator=(CircularBuffer&& cbuffer) {
-//         capacity = cbuffer.capacity;
-//         size_buffer = cbuffer.size_buffer;
-//         buffer = std::move(cbuffer.buffer);
-//         num_data = cbuffer.num_data;
-//         ptr_head = cbuffer.ptr_head;
-//         ptr_tail = cbuffer.ptr_tail;
-//     }
+TEST_CASE("CircularBuffer::empty", "[Capacity]") {
+    CircularBuffer<int> buffer;
+    REQUIRE(buffer.empty());
 
-//     void assign(size_t count, T const& elem) {
-//         count = std::min(capacity, count);
-//         while (count--) {
-//             push_back(elem);
-//         }
-//     }
+    CircularBuffer<int> buf(10);
 
-//     template <typename InputIt>
-//     void assign(InputIt first, InputIt last) {
-//         size_t max_cap = capacity;
-//         for (; max_cap && first != last; ++first, --max_cap) {
-//             push_back(*first);
-//         }
-//     }
+    buf.emplace_back(10);
+    REQUIRE(!buf.empty());
 
-//     void assign(std::initializer_list<T>&& list) {
-//         assign(list.begin(), list.end());
-//     }
+    buf.pop_back();
+    REQUIRE(buf.empty());
+}
 
-//     reference at(size_t pos) {
-//         if (pos < num_data) {
-//             pos = (ptr_head + pos) % size_buffer;
-//             return buffer[pos];
-//         }
-//         throw std::out_of_range("CircularBuffer out_of_range exception occured");
-//     }
+TEST_CASE("CircularBuffer::full", "[Capacity]") {
+    CircularBuffer<int> buffer;
+    REQUIRE(buffer.full());
 
-//     const_reference at(size_t pos) const {
-//         if (pos < num_data) {
-//             pos = (ptr_head + pos) % size_buffer;
-//             return buffer[pos];
-//         }
-//         throw std::out_of_range("CircularBuffer out_of_range exception occured");
-//     }
+    CircularBuffer<int> buf(10);
+    for (int i = 0; i < 10; ++i) {
+        buf.emplace_back(i);
+    }
 
-//     reference operator[](size_t pos) {
-//         return at(pos);
-//     }
+    REQUIRE(buf.full());
+}
 
-//     const_reference operator[](size_t pos) {
-//         return at(pos);
-//     }
+TEST_CASE("CircularBuffer::size", "[Capacity]") {
+    CircularBuffer<int> buffer;
+    REQUIRE(buffer.size() == 0);
 
-//     reference front() {
-//         return buffer[ptr_head];
-//     }
+    CircularBuffer<int> buf(10);
+    for (int i = 0; i < 10; ++i) {
+        REQUIRE(buf.size() == i);
+        buf.emplace_back(i);
+    }
 
-//     const_reference front() const {
-//         return buffer[ptr_head];
-//     }
+    for (int i = 10; i > 0; --i) {
+        REQUIRE(buf.size() == i);
+        buf.pop_back();
+    }
+}
 
-//     reference back() {
-//         int prev = static_cast<int>(ptr_tail) - 1;
-//         if (prev < 0) {
-//             prev = size_buffer - 1;
-//         }
-//         return buffer[prev];
-//     }
+TEST_CASE("CircularBuffer::capacity", "[Capacity]") {
+    CircularBuffer<int> buffer;
+    REQUIRE(buffer.capacity() == 0);
 
-//     const_reference back() const {
-//         int prev = static_cast<int>(ptr_tail) - 1;
-//         if (prev < 0) {
-//             prev = size_buffer - 1;
-//         }
-//         return buffer[prev];
-//     }
+    CircularBuffer<int> buf(10);
+    REQUIRE(buf.capacity() == 10);
+}
 
-//     iterator begin() {
-//         return iterator(buffer.get(), ptr_head, capacity);
-//     }
+TEST_CASE("CircularBuffer::clear", "[Modifier]") {
+    CircularBuffer<int> buffer(10);
+    for (int i = 0; i < 5; ++i) {
+        buffer.emplace_back(i);
+    }
 
-//     const_iterator begin() const {
-//         return const_iterator(buffer.get(), ptr_head, capacity);
-//     }
+    buffer.clear();
+    REQUIRE(buffer.size() == 0);
+}
 
-//     const_iterator cbegin() const {
-//         return const_iterator(buffer.get(), ptr_head, capacity);
-//     }
+TEST_CASE("CircularBuffer::push_back", "[Modifier]") {
+    CircularBuffer<int> buffer(10);
+    for (int i = 0; i < 5; ++i) {
+        buffer.push_back(i);
+        REQUIRE(buffer[i] == i);
+    }
+}
 
-//     iterator end() {
-//         return iterator(buffer.get(), ptr_tail, capacity);
-//     }
+TEST_CASE("CircularBuffer::emplace_back", "[Modifier]") {
+    CircularBuffer<std::string> buffer(10);
+    for (int i = 0; i < 5; ++i) {
+        char str[6] = "test";
+        str[4] = '0' + i;
 
-//     const_iterator end() const {
-//         return const_iterator(buffer.get(), ptr_tail, capacity);
-//     }
+        buffer.emplace_back(str);
+        REQUIRE(buffer[i] == "test" + std::to_string(i));
+    }
+}
 
-//     const_iterator cend() const {
-//         return const_iterator(buffer.get(), ptr_tail, capacity);
-//     }
+TEST_CASE("CircularBuffer::pop_back", "[Modifier]") {
+    CircularBuffer<int> buffer(10);
+    for (int i = 0; i < 5; ++i) {
+        buffer.emplace_back(i);
+    }
 
-//     bool empty() const {
-//         return num_data == 0;
-//     }
+    for (int i = 4; i >= 0; --i) {
+        REQUIRE(buffer.back() == i);
+        buffer.pop_back();
+    }
+}
 
-//     bool full() const {
-//         return num_data == capacity;
-//     }
+TEST_CASE("CircularBuffer::pop_front", "[Modifier]") {
+    CircularBuffer<int> buffer(10);
+    for (int i = 0; i < 5; ++i) {
+        buffer.emplace_back(i);
+    }
 
-//     size_t size() const {
-//         return num_data;
-//     }
-
-//     size_t capacity() const {
-//         return capacity;
-//     }
-
-//     void clear() {
-//         num_data = ptr_head = ptr_tail = 0;
-//     }
-
-//     void push_back(T const& elem) {
-//         emplace_back(elem);
-//     }
-
-//     void push_back(T&& elem) {
-//         emplace_back(std::move(elem))
-//     }
-
-//     template <typename... U>
-//     void emplace_back(U&&... args) {
-//         buffer[ptr_tail] = T(std::forward<U>(args)...);
-
-//         num_data += 1;
-//         ptr_tail = (ptr_tail + 1) % size_buffer;
-//     }
-
-//     void pop_back() {
-//         num_data -= 1;
-//         int prev = static_cast<int>(ptr_tail) - 1;
-//         if (prev < 0) {
-//             prev = size_buffer - 1;
-//         }
-//         ptr_tail = static_cast<size_t>(prev);
-//     }
-
-//     void pop_front() {
-//         num_data -= 1;
-//         ptr_head = (ptr_head + 1) % size_buffer;
-//     }
-
-// private:
-//     size_t capacity;
-//     size_t size_buffer;
-//     std::unique_ptr<T[]> buffer;
-
-//     size_t num_data = 0;
-//     size_t ptr_head = 0;
-//     size_t ptr_tail = 0;
-// };
-
-// int main() {
-    
-// }
-
-int main() {}
+    for (int i = 0; i < 5; ++i) {
+        REQUIRE(buffer.front() == i);
+        buffer.pop_front();
+    }
+}
