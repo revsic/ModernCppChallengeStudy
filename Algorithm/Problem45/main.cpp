@@ -1,41 +1,52 @@
+#define CATCH_CONFIG_MAIN
 #include "PriorityQueue.hpp"
+#include "catch2/catch.hpp"
 
-#include <iostream>
 #include <random>
 
-int main(int argc, char* argv[])
-{
-    constexpr size_t size = 10;
-    int arr[size] = { 0, };
-    for (size_t i = 0; i < size; ++i) {
-        arr[i] = static_cast<int>(i);
-    }
+static std::random_device rd;
+static std::default_random_engine gen(rd());
 
-    std::random_device rd;
-    std::default_random_engine gen(rd());
-    std::shuffle(arr, arr + size, gen);
-
-    std::cout << "rand ";
-    for (auto i : arr) {
-        std::cout << i << ' ';
-    }
-    std::cout << std::endl;
-
+TEST_CASE("Constructor", "[Initialize]") {
     PriorityQueue<int> queue;
-    for (auto i : arr) {
-        queue.emplace(i);
+    REQUIRE(queue.empty());
+
+    PriorityQueue<int> queue_list = { 0, 3, 2, 5, 4, 1 };
+    for (size_t i = 0; i < 6; ++i) {
+        REQUIRE(queue_list[i] == 5 - i);
     }
 
-    std::cout << "pque ";
-    for (auto i : queue) {
-        std::cout << i << ' ';
+    PriorityQueue<int> copy_ctor(queue_list);
+    for (size_t i = 0; i < 6; ++i) {
+        REQUIRE(copy_ctor[i] == 5 - i);
     }
-    std::cout << std::endl;
 
-    std::cout << "size " << queue.size() << std::endl;
+    PriorityQueue<int> move_ctor(std::move(queue_list));
+    for (size_t i = 0; i < 6; ++i) {
+        REQUIRE(move_ctor[i] == 5 - i);
+    }
+}
 
-    queue.pop();
-    std::cout << "pop + top " << queue.top() << std::endl;
+TEST_CASE("Assignment", "[Initialize]") {
 
-    return 0;
+}
+
+TEST_CASE("Push, Emplace", "[Modification]") {
+
+}
+
+TEST_CASE("Pop", "[Modification]") {
+
+}
+
+TEST_CASE("Iterating", "[Iterator]") {
+
+}
+
+TEST_CASE("Size", "[Get Value]") {
+
+}
+
+TEST_CASE("Top", "[Get Value]") {
+
 }

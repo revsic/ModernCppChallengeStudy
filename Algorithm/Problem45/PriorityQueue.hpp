@@ -47,6 +47,14 @@ public:
         m_vec = std::move(queue.m_vec);
     }
 
+    reference operator[](size_t size) {
+        return m_vec[size];
+    }
+
+    const_reference operator[](size_t size) const {
+        return m_vec[size];
+    }
+
     reference top() {
         return m_vec.front();
     }
