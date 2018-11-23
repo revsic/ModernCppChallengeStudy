@@ -12,7 +12,7 @@ public:
     template <typename U>
     class Iterator {
     public:
-        Iterator(U* ptr, size_t pos, size_t size_buffer, bool begin) :
+        Iterator(U* ptr, size_t pos, size_t size_buffer) :
             ptr(ptr), pos(pos), size_buffer(size_buffer)
         {
             // Do Nothing
@@ -91,6 +91,8 @@ public:
         for (size_t i = 0; i < num_data; ++i) {
             buffer[i] = cbuffer[i];
         }
+
+        return *this;
     }
 
     CircularBuffer& operator=(CircularBuffer&& cbuffer) {
@@ -99,9 +101,11 @@ public:
         num_data = cbuffer.num_data;
         ptr_head = cbuffer.ptr_head;
         ptr_tail = cbuffer.ptr_tail;
+        return *this;
     }
 
     void assign(size_t count, T const& elem) {
+        clear();
         count = std::min(capacity(), count);
         while (count--) {
             push_back(elem);
@@ -110,6 +114,7 @@ public:
 
     template <typename InputIt>
     void assign(InputIt first, InputIt last) {
+        clear();
         size_t max_cap = capacity();
         for (; max_cap && first != last; ++first, --max_cap) {
             push_back(*first);

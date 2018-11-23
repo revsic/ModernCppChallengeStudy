@@ -11,19 +11,70 @@ TEST_CASE("Constructor", "[Constructor]") {
 }
 
 TEST_CASE("CopyConstructor", "[Constructor]") {
+    CircularBuffer<int> buffer(10);
+    buffer.assign({ 0, 1, 2, 3, 4, 5 });
 
+    CircularBuffer<int> buffer2 = buffer;
+    for (int i = 0; i < 6; ++i) {
+        REQUIRE(buffer2[i] == i);
+    }
+
+    CircularBuffer<int> buffer3 = std::move(buffer);
+    for (int i = 0; i < 6; ++i) {
+        REQUIRE(buffer3[i] == i);
+    }
 }
 
 TEST_CASE("Assignment", "[Assignment]") {
+    CircularBuffer<int> buffer(10);
+    CircularBuffer<int> buffer2(5);
+    CircularBuffer<int> buffer3(3);
+    buffer.assign({ 0, 1, 2, 3, 4, 5 });
 
+    buffer2 = buffer;
+    REQUIRE(buffer2.size() == 6);
+    REQUIRE(buffer2.capacity() == 10);
+    for (int i = 0; i < 6; ++i) {
+        REQUIRE(buffer2[i] == i);
+    }
+
+    buffer3 = std::move(buffer);
+    REQUIRE(buffer2.size() == 6);
+    REQUIRE(buffer2.capacity() == 10);
+    for (int i = 0; i < 6; ++i) {
+        REQUIRE(buffer3[i] == i);
+    }
 }
 
 TEST_CASE("CircularBuffer::assign", "[Assignment]") {
+    CircularBuffer<std::string> buffer(10);
+    buffer.assign(3, "test");
+    for (int i = 0; i < 3; ++i) {
+        REQUIRE(buffer[i] == "test");
+    }
 
+    std::vector<std::string> vec;
+    for (int i = 0; i < 3; ++i) {
+        vec.emplace_back(std::to_string(i));
+    }
+
+    buffer.assign(vec.begin(), vec.end());
+    for (int i = 0; i < 3; ++i) {
+        REQUIRE(buffer[i] == std::to_string(i));
+    }
+
+    buffer.assign({"10", "11", "12"});
+    for (int i = 0; i < 3; ++i) {
+        REQUIRE(buffer[i] == std::to_string(10 + i));
+    }
 }
 
 TEST_CASE("CircularBuffer::at", "[Element Access]") {
-
+    CircularBuffer<int> buffer(10);
+    for (int i = 0; i < 10; ++i) {
+        buffer.emplace_back(i);
+        REQUIRE(buffer.at(i) == i);
+    }
 }
 
 TEST_CASE("CircularBuffer::operator[]", "[Element Access]") {
@@ -56,6 +107,11 @@ TEST_CASE("CircularBuffer::{begin, end}", "[Iterator]") {
     CircularBuffer<int> buffer(10);
     for (int i = 0; i < 10; ++i) {
         buffer.emplace_back(i);
+    }
+
+    size_t i = 0;
+    for (auto iter = buffer.begin(); iter != buffer.end(); ++iter, ++i) {
+        REQUIRE(*iter == i);
     }
 }
 
