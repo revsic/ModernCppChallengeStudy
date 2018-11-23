@@ -2,11 +2,6 @@
 #include "PriorityQueue.hpp"
 #include "catch2/catch.hpp"
 
-#include <random>
-
-static std::random_device rd;
-static std::default_random_engine gen(rd());
-
 TEST_CASE("Constructor", "[Initialize]") {
     PriorityQueue<int> queue;
     REQUIRE(queue.empty());
@@ -28,25 +23,108 @@ TEST_CASE("Constructor", "[Initialize]") {
 }
 
 TEST_CASE("Assignment", "[Initialize]") {
+    PriorityQueue<int> q1;
+    PriorityQueue<int> q2 = { 0, 3, 2, 5, 4, 1 };
+    
+    q1 = q2;
+    for (size_t i = 0; i < 6; ++i) {
+        REQUIRE(q1[i] == 5 - i);
+    }
 
+    q1 = std::move(q2);
+    for (size_t i = 0; i < 6; ++i) {
+        REQUIRE(q1[i] == 5 - i);
+    }
 }
 
-TEST_CASE("Push, Emplace", "[Modification]") {
+TEST_CASE("Emplace", "[Modification]") {
+    char const* arr[] = { "0", "1", "2", "3" };
+    
+    PriorityQueue<std::string> que;
+    for (auto elem : arr) {
+        que.emplace(elem);
+    }
 
+    for (size_t i = 0; i < 4; ++i) {
+        REQUIRE(que[i] == std::to_string(3 - i));
+    }
+}
+
+TEST_CASE("Push", "[Modification]") {
+    std::string arr[10];
+    for (size_t i = 0; i < 10; ++i) {
+        arr[i] = std::to_string(i);
+    }
+
+    PriorityQueue<std::string> q1;
+    for (auto const& elem : arr) {
+        q1.push(elem);
+    }
+
+    for (size_t i = 0; i < 10; ++i) {
+        REQUIRE(q1[i] == std::to_string(9 - i));
+    }
+
+    PriorityQueue<std::string> q2;
+    for (auto& elem : arr) {
+        q2.push(std::move(elem));
+    }
+
+    for (size_t i = 0; i < 10; ++i) {
+        REQUIRE(q2[i] == std::to_string(9 - i));
+    }
 }
 
 TEST_CASE("Pop", "[Modification]") {
+    PriorityQueue<int> que = { 0, 3, 2, 1, 5, 4 };
+    
+    for (size_t i = 0; i < 3; ++i) {
+        que.pop();
+    }
 
+    for (size_t i = 0; i < 3; ++i) {
+        REQUIRE(que[i] == 2 - i);
+    }
 }
 
 TEST_CASE("Iterating", "[Iterator]") {
+    PriorityQueue<int> que = { 0, 3, 1, 2, 5, 4 };
+    
+    static_assert(!std::is_const_v<
+        std::remove_reference_t<
+            std::iterator_traits<PriorityQueue<int>::iterator>::reference>>);
+    static_assert(std::is_const_v<
+        std::remove_reference_t<
+            std::iterator_traits<PriorityQueue<int>::const_iterator>::reference>>);
 
+    size_t i = 5; 
+    for (auto iter = que.begin(); iter != que.end(); ++iter, --i) {
+        REQUIRE(*iter == i);
+    }
+
+    i = 5;
+    for (auto iter = que.cbegin(); iter != que.cend(); ++iter, --i) {
+        REQUIRE(*iter == i);
+    }
 }
 
 TEST_CASE("Size", "[Get Value]") {
-
+    PriorityQueue<int> que = { 0, 3, 1, 2, 5, 4 };
+    REQUIRE(que.size() == 6);
 }
 
 TEST_CASE("Top", "[Get Value]") {
+    PriorityQueue<int> que = { 0, 3, 1, 2, 5, 4 };
 
+    for (int i = 5; i >= 0; --i) {
+        REQUIRE(que.top() == i);
+        que.pop();
+    }
+
+}
+TEST_CASE("oper[]", "[Get Value]") {
+    PriorityQueue<int> que = { 0, 3, 1, 2, 5, 4 };
+    for (size_t i = 0; i < 6; ++i) {
+        REQUIRE(que[i] == 5 - i);
+    }
 }

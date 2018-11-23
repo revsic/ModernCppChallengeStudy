@@ -41,10 +41,12 @@ public:
 
     PriorityQueue& operator=(PriorityQueue const& queue) {
         m_vec = queue.m_vec;
+        return *this;
     }
 
     PriorityQueue& operator=(PriorityQueue&& queue) {
         m_vec = std::move(queue.m_vec);
+        return *this;
     }
 
     reference operator[](size_t size) {
