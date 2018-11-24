@@ -4,3 +4,4 @@ project(Language LANGUAGES CXX)
 
 add_subdirectory(./Problem45)
 add_subdirectory(./Problem46)
+add_subdirectory(./Problem47)
