@@ -22,7 +22,7 @@ auto most_frequent_elem(Iter begin, Iter end) {
     std::vector<std::tuple<value_type, size_t>> vec;
     for (auto&[val, num] : map) {
         if (num == max) {
-            vec.emplace_back(val, num);
+            vec.emplace_back(std::move(val), num);
         }
     }
     return vec;
