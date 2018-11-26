@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
+#include <tuple>
 #include <vector>
-#include <list>
 
 auto permutation(std::string const& str, size_t num) {
     using Node = std::tuple<std::string, std::vector<char>>;
