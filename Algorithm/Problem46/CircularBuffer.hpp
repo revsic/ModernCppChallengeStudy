@@ -222,7 +222,7 @@ public:
     }
 
     void push_back(T&& elem) {
-        emplace_back(std::move(elem))
+        emplace_back(std::move(elem));
     }
 
     template <typename... U>
