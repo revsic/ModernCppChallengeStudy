@@ -1,10 +1,11 @@
 #include <algorithm>
 #include <iostream>
 #include <unordered_map>
+#include <vector>
 
 template <typename Iter>
 auto most_frequent_elem(Iter begin, Iter end) {
-    using value_type = std::iterator_traits<Iter>::value_type;
+    using value_type = typename std::iterator_traits<Iter>::value_type;
 
     size_t max = 0;
     std::unordered_map<value_type, size_t> map;
