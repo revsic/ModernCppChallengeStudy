@@ -61,7 +61,7 @@ int main() {
 
     auto[prev, dist] = dijkstra(graph, 'A');
     for (auto const&[node, v] : graph) {
-        std::cout << node << " : " << dist[node] << '\t';
+        std::cout << node << " : " << dist[node] << "\t\t";
 
         std::list<char> queue;
         char prev_node = node;
@@ -75,9 +75,9 @@ int main() {
         for (auto path : queue) {
             if (flag) {
                 std::cout << " -> ";
-                flag = true;
             }
             std::cout << path << ' ';
+            flag = true;
         }
         std::cout << std::endl;
     }
