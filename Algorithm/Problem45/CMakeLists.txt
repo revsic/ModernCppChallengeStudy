@@ -8,7 +8,7 @@ message(STATUS "${ProjectName}")
 
 project(${ProjectName} LANGUAGES CXX)
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} TestPriorityQueue.cpp TestHeap.cpp)
 
 if(MSVC)
     target_compile_options(${PROJECT_NAME}
