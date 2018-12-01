@@ -2,7 +2,7 @@
 #define HEAP_HPP
 
 #include <vector>
-#include <iostream>
+
 template <typename T>
 class Heap {
 public:
