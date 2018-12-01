@@ -43,9 +43,9 @@ void simulate(bool (&table)[H][W]) {
 
 int main() {
     bool arr[20][50] = {
-        { 1, 1, 1, },
-        { 1, 0, 0, },
-        { 0, 1, 0, },
+        { 0, 0, 1, },
+        { 1, 0, 1, },
+        { 0, 1, 1, },
     };
 
     for (size_t i = 0; i < 100; ++i) {
@@ -61,6 +61,6 @@ int main() {
         std::cout << std::endl;
 
         simulate(arr);
-        std::this_thread::sleep_for(1s);
+        std::this_thread::sleep_for(0.3s);
     }
 }
