@@ -2,7 +2,6 @@
 #include <cassert>
 #include <chrono>
 #include <iostream>
-#include <vector>
 
 #include <thread>
 
