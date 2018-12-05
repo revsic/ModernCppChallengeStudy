@@ -23,18 +23,19 @@ void par_transform(InputIter in_begin,
         InputIter in_iter = in_begin;
         OutputIter out_iter = out_begin;
 
-        std::advance(in_begin, partition);
-        std::advance(out_begin, partition);
+        if (i == num_thread - 1) {
+            in_begin = in_end;
+        } else {
+            std::advance(in_begin, partition);
+            std::advance(out_begin, partition);
+        }
 
-        pool[i] = std::thread([=, &unary]() mutable {
-            for (; in_iter != in_begin; ++in_iter) {
-                *out_iter++ = unary(*in_iter);
-            }
+        pool[i] = std::thread([=]{
+            std::transform(in_iter, in_begin, out_iter, unary);
+            // for (; in_iter != in_begin; ++in_iter, ++out_iter) {
+            //     *out_iter = unary(*in_iter);
+            // }
         });
-    }
-
-    for (; in_begin != in_end; ++in_begin) {
-        *out_begin++ = unary(*in_begin);
     }
 
     for (size_t i = 0; i < num_thread; ++i) {
@@ -53,14 +54,14 @@ int main() {
         input[i] = i;
     }
 
-    auto map_func = [](int n) { return n * 2; };
-
     auto benchmark = [&](auto name, auto& func) {
         using namespace std::chrono;
 
         for (size_t i = 0; i < TEST_SIZE; ++i) {
             output[i] = 0;
         }
+
+        auto map_func = [](int n) { return n * 2; };
 
         auto begin = steady_clock::now();
         func(input, input + TEST_SIZE, output, map_func);
