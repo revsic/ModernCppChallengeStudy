@@ -4,14 +4,106 @@
 #include <iostream>
 #include <random>
 
-#include <future>
+#include <atomic>
+#include <condition_variable>
+#include <list>
+#include <mutex>
+#include <thread>
+#include <tuple>
 
-template <typename Iter>
+template <size_t Threshold, typename Iter>
+struct SortPool {
+    size_t num_thread;
+    std::unique_ptr<std::thread[]> pool;
+
+    std::atomic<int> works = 0;
+
+    std::mutex mtx;
+    std::condition_variable cond;
+    std::list<std::tuple<Iter, Iter>> lists;
+
+    SortPool(size_t num_thread) : 
+        num_thread(num_thread),
+        pool(std::make_unique<std::thread[]>(num_thread))
+    {
+        for (size_t i = 0; i < num_thread; ++i) {
+            pool[i] = std::thread([this]{
+                while (true) {
+                    auto[begin, end] = GetRange();
+                    if (works <= 0) break;
+
+                    auto dist = std::distance(begin, end);
+                    if (dist <= Threshold) {
+                        if (dist > 1) std::sort(begin, end);
+                    }
+                    else {
+                        works += 2;
+
+                        Iter iter_b = begin;
+                        Iter iter_e = end - 1;
+                        auto pivot = *(begin + dist / 2);
+                    
+                        while (iter_b < iter_e) {
+                            while (pivot < *iter_e) --iter_e;
+                            while (iter_b < iter_e && *iter_b < pivot) ++iter_b;
+
+                            std::swap(*iter_b, *iter_e);
+                        }
+                        {
+                            std::unique_lock lock(mtx);
+                            lists.emplace_back(begin, iter_b);
+                            lists.emplace_back(iter_b, end);
+                        }
+                    }
+                    --works;
+                    cond.notify_all();
+                }
+            });
+        }
+    }
+
+    ~SortPool() {
+        works = 0;
+        cond.notify_all();
+
+        for (size_t i = 0; i < num_thread; ++i) {
+            if (pool[i].joinable()) {
+                pool[i].join();
+            }
+        }
+    }
+
+    std::tuple<Iter, Iter> GetRange() {
+        std::unique_lock lock(mtx);
+        cond.wait(lock, [&]{ return works <= 0 || lists.size() > 0; });
+
+        if (works <= 0) {
+            return std::tuple<Iter, Iter>();
+        }
+        
+        auto range = std::move(lists.front());
+        lists.pop_front();
+
+        cond.notify_all();
+        return range;
+    }
+
+    void Start(Iter begin, Iter end) {
+        ++works;
+        lists.emplace_back(begin, end);
+
+        cond.notify_all();
+        while (works > 0);
+    }
+};
+
+template <size_t Threshold, typename Iter>
 void par_sort(Iter begin, Iter end) {
-
+    SortPool<Threshold, Iter> pool(std::thread::hardware_concurrency());
+    pool.Start(begin, end);
 }
 
-constexpr size_t TEST_SIZE = 100000000;
+constexpr size_t TEST_SIZE = 1000000;
 int input[TEST_SIZE];
 
 int main() {
@@ -38,7 +130,7 @@ int main() {
     };
     
     benchmark("seq", std::sort<int*>);
-    benchmark("par", par_sort<int*>);
+    benchmark("par", par_sort<100, int*>);
 
     return 0;
 }
