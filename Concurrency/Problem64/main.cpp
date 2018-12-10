@@ -130,7 +130,7 @@ int main() {
     };
     
     benchmark("seq", std::sort<int*>);
-    benchmark("par", par_sort<100, int*>);
+    benchmark("par", par_sort<1000, int*>);
 
     return 0;
 }
