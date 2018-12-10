@@ -16,9 +16,9 @@ include(GetModules)
 # add_subdirectory(Filesystem)    # Ch.4
 # add_subdirectory(DateTime)      # Ch.5
 # add_subdirectory(Algorithm)     # Ch.6
-add_subdirectory(Concurrency)   # Ch.7
+# add_subdirectory(Concurrency)   # Ch.7
+add_subdirectory(DesignPattern) # Ch.8
 # add_subdirectory(Serialization) # Ch.9
-# add_subdirectory(DesignPattern) # Ch.8
 # add_subdirectory(Archives)      # Ch.10
 # add_subdirectory(Database)      #
 # add_subdirectory(Images)        # 
