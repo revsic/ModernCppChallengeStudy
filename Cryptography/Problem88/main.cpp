@@ -25,11 +25,17 @@ std::string encrypt(std::string const& input, size_t dist) {
     return output;
 }
 
+std::string decrypt(std::string const& input, size_t dist) {
+    return encrypt(input, 26 - dist % 26);
+}
+
 int main(int argc, char* argv[])
 {
     size_t dist;
     std::string input;
     std::cin >> input >> dist;
 
-    std::cout << encrypt(input, dist) << std::endl;
+    std::string encrypted = encrypt(input, dist);
+    std::cout << encrypted << std::endl;
+    std::cout << decrypt(encrypted, dist) << std::endl;
 }
