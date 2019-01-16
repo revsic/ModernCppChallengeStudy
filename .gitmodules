@@ -5,3 +5,6 @@
 [submodule "External/Catch2"]
 	path = External/Catch2
 	url = https://github.com/catchorg/Catch2
+[submodule "External/botan"]
+	path = External/botan
+	url = https://github.com/randombit/botan
