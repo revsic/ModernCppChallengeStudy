@@ -1,5 +1,7 @@
-#include <iostream>
+#include <cctype>
 #include <functional>
+#include <iostream>
+#include <string>
 
 template <typename Rules>
 auto validate(std::string const& view, Rules const& rules) {
