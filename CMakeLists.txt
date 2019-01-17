@@ -22,7 +22,7 @@ include(GetModules)
 # add_subdirectory(Archives)      # Ch.10
 # add_subdirectory(Database)      #
 # add_subdirectory(Images)        # 
-add_subdirectory(Cryptography)  # Ch.11
-# add_subdirectory(Networking)    # Ch.12
+# add_subdirectory(Cryptography)  # Ch.11 done
+add_subdirectory(Networking)    # Ch.12
 
 # add_subdirectory(Extra)         # Bonus challenge!
